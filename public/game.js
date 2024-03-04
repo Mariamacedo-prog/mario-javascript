@@ -58,7 +58,8 @@ async function register(event){
     kaboom({
       global: true,
       fullscreen: true,
-      scale: 2
+      scale: 2,
+      clearColor: [0,0,0,1]
     })
 
     const moveSpeed = 120;
@@ -76,21 +77,113 @@ async function register(event){
     loadSprite("evil-shroom", "KPO3fR9.png")
     loadSprite("brick", "pogC9x5.png")
     loadSprite("block", "M6rwarW.png")
-    loadSprite("mario", "49312nl.png")  //não achou
-    loadSprite("mushroon", "0wMd92p.png")
+    loadSprite("mario", "Wb1qfhK.png")
+    loadSprite("mushroom", "0wMd92p.png")
     loadSprite("surprise", "gesQ1KP.png")
     loadSprite("unboxed", "bdrLpi6.png")
     loadSprite("pipe-top-left", "ReTPiWY.png")
     loadSprite("pipe-top-right", "hj2GK4n.png")
     loadSprite("pipe-bottom-left", "c1cYSbt.png")
     loadSprite("pipe-bottom-right", "nqQ79eI.png")
-    loadSprite("blue-block", "bTf6mZo.jpeg") //não achou
+    loadSprite("blue-block", "fVscIbn.png")
     loadSprite("blue-brick", "3e5YRQd.png")
     loadSprite("blue-steel", "gqVoI2b.png")
-    loadSprite("blue-evil-mushroom", "SvV4ueD.png")
-    loadSprite("blue-surprise", "a6vJRGj.jpeg") //não achou
-    loadSprite("", "")
-    loadSprite("", "")
+    loadSprite("blue-evil-shroom", "SvV4ueD.png")
+    loadSprite("blue-surprise", "RMqCc1G.png") 
+
+    scene("game",({level, score}) => {
+      layers(["bg", "obj", "ui"], "obj")
+      const maps = [
+        [      
+          '                                      ',
+          '                                      ',
+          '                                      ',
+          '                                      ',
+          '                                      ',
+          '    %  =*=%                           ',
+          '                                      ',
+          '                         -+           ',
+          '             ^      ^    ()           ',
+          '==============================   ====='
+        ],
+        [      
+          '£                                              £',
+          '£                                              £',
+          '£                                              £',
+          '£                                              £',
+          '£                                              £',
+          '£      @@@@@@                    xx            £',
+          '£                               xxx            £',
+          '£                              xxxx      x   -+£',
+          '£             z      z        xxxxx      x   ()£',
+          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        ]
+      ]
+
+
+      const levelConfig = {
+        width: 20,
+        height: 20,
+        '=': [sprite('block'), solid()],
+        '}': [sprite('unboxed'), solid()],
+        '*': [sprite('surprise'), solid(), 'mushroom-surprise'],
+        '%': [sprite('surprise'), solid(), 'coin-surprise'],
+        '$': [sprite('coin'), 'coin'],
+        '(': [sprite('pipe-bottom-left'), solid(), scale(0.5)],        
+        ')': [sprite('pipe-bottom-right'), solid(), scale(0.5)],
+        '-': [sprite('pipe-top-left'), solid(), scale(0.5), 'pipe'],
+        '+': [sprite('pipe-top-right'), solid(), scale(0.5), 'pipe'],
+        '^': [sprite('evil-shroom'), solid(),'dangerous'],
+        '#': [sprite('mushroom'), solid(),'mushroom', body()],
+        '!': [sprite('blue-block'), solid(),scale(0.5)],
+        '£': [sprite('blue-brick'), solid(),scale(0.5)],
+        'z': [sprite('blue-evil-shroom'), solid(),scale(0.5),'dangerous'],
+        '@': [sprite('blue-surprise'), solid(),scale(0.5),'coin-surprise'],
+        'x': [sprite('blue-steel'), solid(),scale(0.5)],
+      };
+
+      const gameLevel = addLevel(maps[level], levelConfig);
+
+      //adicionando o score em tela
+      const scoreLabel = add([
+        text(score),
+        pos(30, 6),
+        layer('ui'),
+        {
+          value: score
+        }
+      ])
+
+      //adicionando o level em tela
+      add([text('  level  ' + parseInt(level + 1)),pos(40, 6)])
+
+      const player = add([
+        sprite("mario"), 
+        solid(),
+        pos(30, 0),
+        body(),
+        origin('bot')
+      ]);
+
+      // Example: Move the player left and right
+      keyDown("left", () => {
+        player.move(-moveSpeed, 0);
+      });
+
+      keyDown("right", () => {
+        player.move(moveSpeed, 0);
+      });
+
+      // Example: Make the player jump
+      keyPress("space", () => {
+        if (player.grounded()) {
+          player.jump(currentJumpForce);
+        }
+      });
+
+    })
+
+    start("game", {level: 0, score: 0})
   };
 
   startGame()
