@@ -53,7 +53,9 @@ async function register(event){
 
     modalElement.classList.add('hidden')
   };
-  //kaboom game
+
+
+  //Kaboom game
   function startGame(){
     kaboom({
       global: true,
@@ -67,7 +69,7 @@ async function register(event){
     const bigJumpForce = 550;
     let currentJumpForce = jumpForce;
     const fallDeath = 400;
-    const enemyDeath = 20;
+    const enemySpeed = 20;
 
     //game logic
     let isJumping = true;
@@ -91,6 +93,7 @@ async function register(event){
     loadSprite("blue-evil-shroom", "SvV4ueD.png")
     loadSprite("blue-surprise", "RMqCc1G.png") 
 
+    //  Telas
     scene("game",({level, score}) => {
       layers(["bg", "obj", "ui"], "obj")
       const maps = [
@@ -144,7 +147,7 @@ async function register(event){
 
       const gameLevel = addLevel(maps[level], levelConfig);
 
-      //adicionando o score em tela
+      //  Adicionando o score em tela
       const scoreLabel = add([
         text(score),
         pos(30, 6),
@@ -154,8 +157,9 @@ async function register(event){
         }
       ])
 
-      //adicionando o level em tela
+      //  Adicionando o level em tela
       add([text('  level  ' + parseInt(level + 1)),pos(40, 6)])
+
 
       const player = add([
         sprite("mario"), 
@@ -165,21 +169,97 @@ async function register(event){
         origin('bot')
       ]);
 
-      // Example: Move the player left and right
+      //  Quando morrer aparecer o score
+      player.action(() => {
+        camPos(player.pos)
+        if(player.pos.y >= fallDeath){
+          go('lose', {score: scoreLabel.value})
+        }
+      })
+
+      //  Entrar no cano
+      player.collides('pipe',() => {
+        keyPress('down', () => {
+          go('game' , {
+            level: (level + 1) % maps.length,
+            score: scoreLabel.value
+          })
+        })
+      })
+    
+      //  Movimento do inimigo
+      action('dangerous', (d) => {
+        d.move(-enemySpeed, 0)
+      })
+
+      //  Matar o bicho ou morrer.
+      player.collides('dangerous',(d) => {
+         if(isJumping){
+          destroy(d)
+         }else{
+          go('lose', {score: scoreLabel.value})
+         }
+      })
+
+      //  Mashroom se movendo 
+      action('mushroom',(m) => {
+        m.move(20, 0)
+      })
+
+      player.collides('mushroom',(m) => {
+        destroy(m)
+        player.biggify(6)
+      })
+
+      //  Pular e quebrar a caixa.
+      player.on("headbump",(obj) => {
+        if(obj.is('coin-surprise')){
+          gameLevel.spawn('$', obj.gridPos.sub(0,1))
+          destroy(obj)
+          gameLevel.spawn('}', obj.gridPos.sub(0,0))
+        }
+
+        if(obj.is('mushroom-surprise')){
+          gameLevel.spawn('#', obj.gridPos.sub(0,1))
+          destroy(obj)
+          gameLevel.spawn('}', obj.gridPos.sub(0,0))
+        }
+      })
+
+      //  Bater na caixa e aumentar o score.
+      player.collides('coin',(c) => {
+         destroy(c)
+         scoreLabel.value++
+         scoreLabel.text = scoreLabel.value
+      })
+
+      // Andar para esquerda
       keyDown("left", () => {
         player.move(-moveSpeed, 0);
       });
-
+      //  Andar para direita
       keyDown("right", () => {
         player.move(moveSpeed, 0);
       });
 
-      // Example: Make the player jump
+      player.action(() => {
+        if(player.grounded()){
+          isJumping = false;
+        }
+      })
+
+      //  Quando apertar o espaço o player pula
       keyPress("space", () => {
         if (player.grounded()) {
+          isJumping = true;
           player.jump(currentJumpForce);
         }
       });
+
+      //  Ato de morrer
+      scene('lose', ({score}) => {
+        add([text(score, 32), origin('center'), pos( width()/2, height()/2 ) ])
+      })
 
     })
 
