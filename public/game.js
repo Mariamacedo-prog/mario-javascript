@@ -166,8 +166,41 @@ async function register(event){
         solid(),
         pos(30, 0),
         body(),
+        big(),
         origin('bot')
       ]);
+
+      function big(){
+        let timer = 0
+        let isBig = false
+
+        return {
+          update(){
+            if(isBig){
+              currentJumpForce = bigJumpForce
+              timer -= dt()
+              if(timer <= 0){
+                this.smallify()
+              }
+            }
+          },
+          isBig(){
+            return isBig
+          },
+          smallify(){
+            this.scale = vec2(1)
+
+            currentJumpForce = jumpForce
+            timer = 0
+            isBig = false
+          },
+          biggify(time){
+            this.scale = vec2(2)
+            timer = time
+            isBig = true
+          }
+        }
+      }
 
       //  Quando morrer aparecer o score
       player.action(() => {
